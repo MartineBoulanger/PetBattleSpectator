@@ -5,6 +5,8 @@
 ## Notes: Spectator view for live streams during PvP Pet battles (can also be used in PvE battles)
 ## IconTexture: Interface\Addons\PetBattleSpectator\media\PetBattleSpectator-icon.tga
 ## SavedVariables: PetBattleSpectatorDB
+## X-Curse-Project-ID: 1304900
+## X-License: GNUGPLv3
 ## X-Category: Pet Battles
 ## Category-enUS: Pet Battles
 ## Category-deDE: Haustierkämpfe
