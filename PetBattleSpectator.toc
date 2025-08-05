@@ -1,5 +1,5 @@
 ## Interface: 110200,50500
-## Version: 1.1.0
+## Version: 1.1.1
 ## Title: PetBattleSpectator
 ## Author: FwenTheHunter
 ## Notes: Spectator view for live streams during PvP Pet battles (can also be used in PvE battles)
