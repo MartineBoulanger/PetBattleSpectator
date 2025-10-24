@@ -96,9 +96,28 @@ local function ShowOptions()
         durationText:SetText(string.format("Show Log Duration: %d sec", value))
     end)
 
+    -- Background Opacity Slider
+    local opacitySlider = CreateFrame("Slider", nil, options, "OptionsSliderTemplate")
+    opacitySlider:SetPoint("TOPLEFT", durationSlider, "BOTTOMLEFT", 0, -35)
+    opacitySlider:SetWidth(180)
+    opacitySlider:SetMinMaxValues(0.1, 1.0)
+    opacitySlider:SetValue(PetBattleSpectatorDB.backgroundOpacity or 0.3)
+    opacitySlider:SetValueStep(0.1)
+
+    local opacityText = opacitySlider:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    opacityText:SetPoint("BOTTOM", opacitySlider, "TOP", 0, 4)
+    opacityText:SetText(string.format("Background Opacity: %.1f", PetBattleSpectatorDB.backgroundOpacity or 0.3))
+
+    opacitySlider:SetScript("OnValueChanged", function(self, value)
+        value = math.floor(value * 10) / 10 -- Round to 1 decimal place
+        PetBattleSpectatorDB.backgroundOpacity = value
+        opacityText:SetText(string.format("Background Opacity: %.1f", value))
+        addon.UpdateAppearance()
+    end)
+
     -- Reset Frames Position Button
     local framesButton = CreateFrame("Button", nil, options, "UIPanelButtonTemplate")
-    framesButton:SetPoint("TOP", durationSlider, "BOTTOM", 0, -35)
+    framesButton:SetPoint("TOP", opacitySlider, "BOTTOM", 0, -15)
     framesButton:SetSize(150, 25)
     framesButton:SetText("Reset Logs Positions")
     framesButton:SetScript("OnClick", function()
@@ -106,13 +125,13 @@ local function ShowOptions()
         addon.leftFrame:ClearAllPoints()
         addon.rightFrame:ClearAllPoints()
         -- Set new positions relative to UIParent
-        addon.leftFrame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 30, -100)
-        addon.rightFrame:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", 0, -100)
+        addon.leftFrame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 10, -100)
+        addon.rightFrame:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -10, -100)
     end)
 
     -- Reset Timer Position Button
     local resetBtn = CreateFrame("Button", nil, options, "UIPanelButtonTemplate")
-    resetBtn:SetPoint("TOP", framesButton, "BOTTOM", 0, -15)
+    resetBtn:SetPoint("TOP", framesButton, "BOTTOM", 0, -5)
     resetBtn:SetSize(150, 25)
     resetBtn:SetText("Reset Timer Position")
     resetBtn:SetScript("OnClick", function()
@@ -125,7 +144,7 @@ local function ShowOptions()
 
     -- Calculate total height needed
     local totalHeight = 100 + slider:GetHeight() + maxLinesSlider:GetHeight() +
-        durationSlider:GetHeight() + framesButton:GetHeight() + resetBtn:GetHeight() + 100
+        durationSlider:GetHeight() + opacitySlider:GetHeight() + framesButton:GetHeight() + resetBtn:GetHeight() + 100
 
     -- Set frame height
     options:SetHeight(totalHeight)

@@ -8,7 +8,7 @@ local currentRound = 0
 -- Create main frame
 local leftFrame = CreateFrame("Frame", "PetBattleSpectatorLeftFrame", UIParent)
 leftFrame:SetWidth(500)
-leftFrame:SetPoint("TOPLEFT", 30, -100)
+leftFrame:SetPoint("TOPLEFT", 10, -100)
 leftFrame:SetFrameStrata("HIGH")
 leftFrame:SetMovable(true)
 leftFrame:EnableMouse(true)
@@ -17,9 +17,14 @@ leftFrame:SetScript("OnDragStart", leftFrame.StartMoving)
 leftFrame:SetScript("OnDragStop", leftFrame.StopMovingOrSizing)
 leftFrame:Hide()
 
+-- Add background to left frame
+leftFrame.bg = leftFrame:CreateTexture(nil, "BACKGROUND")
+leftFrame.bg:SetAllPoints()
+leftFrame.bg:SetColorTexture(0, 0, 0, 1) -- Black background
+
 local leftScroll = CreateFrame("ScrollFrame", nil, leftFrame)
-leftScroll:SetPoint("TOPLEFT", -5, -5)
-leftScroll:SetPoint("BOTTOMRIGHT", -5, -5)
+leftScroll:SetPoint("TOPLEFT", 10, -10)
+leftScroll:SetPoint("BOTTOMRIGHT", -10, 10)
 
 local leftContent = CreateFrame("Frame")
 leftContent:SetWidth(500)
@@ -51,7 +56,7 @@ leftFont:SetShadowOffset(1, -1)
 -- Right Frame (Your Actions)
 local rightFrame = CreateFrame("Frame", "PetBattleSpectatorRightFrame", UIParent)
 rightFrame:SetWidth(500)
-rightFrame:SetPoint("TOPRIGHT", 0, -100)
+rightFrame:SetPoint("TOPRIGHT", -10, -100)
 rightFrame:SetFrameStrata("HIGH")
 rightFrame:SetMovable(true)
 rightFrame:EnableMouse(true)
@@ -60,9 +65,14 @@ rightFrame:SetScript("OnDragStart", rightFrame.StartMoving)
 rightFrame:SetScript("OnDragStop", rightFrame.StopMovingOrSizing)
 rightFrame:Hide()
 
+-- Add background to right frame
+rightFrame.bg = rightFrame:CreateTexture(nil, "BACKGROUND")
+rightFrame.bg:SetAllPoints()
+rightFrame.bg:SetColorTexture(0, 0, 0, 1) -- Black background
+
 local rightScroll = CreateFrame("ScrollFrame", nil, rightFrame)
-rightScroll:SetPoint("TOPLEFT", -5, -5)
-rightScroll:SetPoint("BOTTOMRIGHT", -5, -5)
+rightScroll:SetPoint("TOPLEFT", 10, -10)
+rightScroll:SetPoint("BOTTOMRIGHT", -10, 10)
 
 local rightContent = CreateFrame("Frame")
 rightContent:SetWidth(500)
@@ -96,6 +106,7 @@ PetBattleSpectatorDB = PetBattleSpectatorDB or {
   fontSize = 12,
   maxLines = 100,
   logDuration = 5,
+  backgroundOpacity = 0.3,
   leftLogs = {},
   rightLogs = {}
 }
@@ -104,6 +115,7 @@ PetBattleSpectatorDB = PetBattleSpectatorDB or {
 PetBattleSpectatorDB.leftLogs = PetBattleSpectatorDB.leftLogs or {}
 PetBattleSpectatorDB.rightLogs = PetBattleSpectatorDB.rightLogs or {}
 PetBattleSpectatorDB.maxLines = PetBattleSpectatorDB.maxLines or 100
+PetBattleSpectatorDB.backgroundOpacity = PetBattleSpectatorDB.backgroundOpacity or 0.3
 
 -- Update appearance for both frames
 local function UpdateAppearance()
@@ -111,9 +123,15 @@ local function UpdateAppearance()
   leftFont:SetFont("Fonts\\FRIZQT__.TTF", PetBattleSpectatorDB.fontSize)
   leftFont:SetTextColor(1, 1, 1, 1)
 
+  -- Apply background opacity to left frame
+  leftFrame.bg:SetAlpha(PetBattleSpectatorDB.backgroundOpacity or 0.3)
+
   -- Right frame settings
   rightFont:SetFont("Fonts\\FRIZQT__.TTF", PetBattleSpectatorDB.fontSize)
   rightFont:SetTextColor(1, 1, 1, 1)
+
+  -- Apply background opacity to right frame
+  rightFrame.bg:SetAlpha(PetBattleSpectatorDB.backgroundOpacity or 0.3)
 
   -- Refresh displayed text with proper scrolling
   if PetBattleSpectatorDB.leftLogs then
