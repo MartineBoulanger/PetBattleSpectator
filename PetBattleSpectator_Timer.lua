@@ -46,6 +46,7 @@ end
 
 function Timer:OnUpdate(elapsed)
   if not self.isPvP then return end
+  if not PetBattleSpectatorDB.showTimer then return end
 
   self.lastUpdate = self.lastUpdate + elapsed
   if self.lastUpdate > 0.1 then -- Update every 0.1 seconds
@@ -72,19 +73,29 @@ function Timer:UpdateDisplay()
 end
 
 function Timer:ResetTurnTimer()
-  self.currentTurnTime = 30                -- Make sure this matches your variable name
+  self.currentTurnTime = 30            -- Make sure this matches your variable name
   self.timerText:SetText("30.0")
-  self.timerText:SetTextColor(1, 1, 1)     -- Reset to white
+  self.timerText:SetTextColor(1, 1, 1) -- Reset to white
 end
 
-function Timer:Show()
-  if self.isPvP then
+function Timer:UpdateVisibility()
+  if self.timerFrame
+      and self.isPvP
+      and PetBattleSpectatorDB.showTimer then
     self.timerFrame:Show()
+  else
+    self.timerFrame:Hide()
   end
 end
 
+function Timer:Show()
+  self:UpdateVisibility()
+end
+
 function Timer:Hide()
-  self.timerFrame:Hide()
+  if self.timerFrame then
+    self.timerFrame:Hide()
+  end
 end
 
 function Timer:SavePosition()

@@ -1,5 +1,4 @@
-local addonName, addon = ...
-local Timer = {}
+local _, addon = ...
 
 local max = _G.math.max
 local min = _G.math.min
@@ -108,7 +107,8 @@ PetBattleSpectatorDB = PetBattleSpectatorDB or {
   logDuration = 5,
   backgroundOpacity = 0.3,
   leftLogs = {},
-  rightLogs = {}
+  rightLogs = {},
+  showTimer = true
 }
 
 -- Ensure logs table exists
@@ -233,7 +233,7 @@ rightFrame:RegisterEvent("PET_BATTLE_CLOSE")
 -- Single event handler for both frames
 local function OnEvent(self, event, ...)
   if event == "PLAYER_LOGIN" then
-    print("|cff3FC7EBPetBattleSpectator|r loaded. Type |cffFFFF00/pbs|r for options.")
+    print("|cff3FC7EB[PBS]|r: addon loaded. Open options panel with: |cffFFFF00/pbs|r")
     addon.Timer:Initialize()
   elseif event == "PET_BATTLE_OPENING_START" then
     local isPvP = not C_PetBattles.IsPlayerNPC(LE_BATTLE_PET_ENEMY)
@@ -248,8 +248,8 @@ local function OnEvent(self, event, ...)
 
     if isPvP then
       addon.Timer:ResetTurnTimer() -- Assume player's turn first
-      addon.Timer:Show()
     end
+    addon.Timer:UpdateVisibility()
   elseif event == "CHAT_MSG_PET_BATTLE_COMBAT_LOG" then
     local message = ...
     local isGeneral = message:match("Round") or message:match("BATTLE") or
