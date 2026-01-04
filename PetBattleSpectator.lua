@@ -4,7 +4,34 @@ local max = _G.math.max
 local min = _G.math.min
 local currentRound = 0
 
--- Create main frame
+-- ======================================================
+-- DATABASE INITIALIZATION
+-- ======================================================
+local function InitDB()
+  PetBattleSpectatorDB = PetBattleSpectatorDB or {}
+
+  local defaults = {
+    enabled = true,
+    fontSize = 12,
+    maxLines = 100,
+    logDuration = 2,
+    backgroundOpacity = 0.3,
+    leftLogs = {},
+    rightLogs = {},
+    showTimer = false,
+  }
+
+  for k, v in pairs(defaults) do
+    if PetBattleSpectatorDB[k] == nil then
+      PetBattleSpectatorDB[k] = v
+    end
+  end
+end
+
+-- ======================================================
+-- FRAMES
+-- ======================================================
+-- left frame
 local leftFrame = CreateFrame("Frame", "PetBattleSpectatorLeftFrame", UIParent)
 leftFrame:SetWidth(500)
 leftFrame:SetPoint("TOPLEFT", 10, -100)
@@ -50,7 +77,6 @@ leftFont:SetJustifyV("TOP")
 leftFont:SetWordWrap(true)
 leftFont:SetShadowColor(0, 0, 0, 1)
 leftFont:SetShadowOffset(1, -1)
-
 
 -- Right Frame (Your Actions)
 local rightFrame = CreateFrame("Frame", "PetBattleSpectatorRightFrame", UIParent)
@@ -99,39 +125,24 @@ rightFont:SetWordWrap(true)
 rightFont:SetShadowColor(0, 0, 0, 1)
 rightFont:SetShadowOffset(1, -1)
 
--- Initialize database with proper defaults
-PetBattleSpectatorDB = PetBattleSpectatorDB or {
-  enabled = true,
-  fontSize = 12,
-  maxLines = 100,
-  logDuration = 5,
-  backgroundOpacity = 0.3,
-  leftLogs = {},
-  rightLogs = {},
-  showTimer = true
-}
-
--- Ensure logs table exists
-PetBattleSpectatorDB.leftLogs = PetBattleSpectatorDB.leftLogs or {}
-PetBattleSpectatorDB.rightLogs = PetBattleSpectatorDB.rightLogs or {}
-PetBattleSpectatorDB.maxLines = PetBattleSpectatorDB.maxLines or 100
-PetBattleSpectatorDB.backgroundOpacity = PetBattleSpectatorDB.backgroundOpacity or 0.3
-
--- Update appearance for both frames
+-- ======================================================
+-- APPEARANCE UPDATE
+-- ======================================================
 local function UpdateAppearance()
+  if not PetBattleSpectatorDB then return end
   -- Left frame settings
   leftFont:SetFont("Fonts\\FRIZQT__.TTF", PetBattleSpectatorDB.fontSize)
   leftFont:SetTextColor(1, 1, 1, 1)
 
   -- Apply background opacity to left frame
-  leftFrame.bg:SetAlpha(PetBattleSpectatorDB.backgroundOpacity or 0.3)
+  leftFrame.bg:SetAlpha(PetBattleSpectatorDB.backgroundOpacity)
 
   -- Right frame settings
   rightFont:SetFont("Fonts\\FRIZQT__.TTF", PetBattleSpectatorDB.fontSize)
   rightFont:SetTextColor(1, 1, 1, 1)
 
   -- Apply background opacity to right frame
-  rightFrame.bg:SetAlpha(PetBattleSpectatorDB.backgroundOpacity or 0.3)
+  rightFrame.bg:SetAlpha(PetBattleSpectatorDB.backgroundOpacity)
 
   -- Refresh displayed text with proper scrolling
   if PetBattleSpectatorDB.leftLogs then
@@ -153,7 +164,6 @@ local function UpdateAppearance()
   end
 end
 
-
 addon.UpdateAppearance = UpdateAppearance
 addon.leftFrame = leftFrame
 addon.rightFrame = rightFrame
@@ -163,11 +173,6 @@ addon.leftScroll = leftScroll
 addon.rightScroll = rightScroll
 addon.baseHeight = 40
 addon.lineHeight = 14
-
--- Calculate initial height based on default maxLines (100)
-local initialHeight = addon.baseHeight + (PetBattleSpectatorDB.maxLines or 100) * addon.lineHeight / 4
-leftFrame:SetHeight(initialHeight)
-rightFrame:SetHeight(initialHeight)
 
 leftScroll:SetScript("OnSizeChanged", function(self)
   self:UpdateScrollChildRect()
@@ -179,7 +184,9 @@ rightScroll:SetScript("OnSizeChanged", function(self)
   UpdateAppearance()
 end)
 
--- Add message to log
+-- ======================================================
+-- ADD LOG MESSAGES TO FRAMES
+-- ======================================================
 local function AddMessage(text, isRoundMessage)
   if not text or text == "" then return end
 
@@ -217,26 +224,34 @@ local function AddMessage(text, isRoundMessage)
   UpdateAppearance()
 end
 
--- Register events on both frames
+-- ======================================================
+-- EVENTS
+-- ======================================================
+leftFrame:RegisterEvent("ADDON_LOADED")
 leftFrame:RegisterEvent("PLAYER_LOGIN")
 leftFrame:RegisterEvent("CHAT_MSG_PET_BATTLE_COMBAT_LOG")
 leftFrame:RegisterEvent("PET_BATTLE_PET_ROUND_PLAYBACK_COMPLETE")
 leftFrame:RegisterEvent("PET_BATTLE_OPENING_START")
 leftFrame:RegisterEvent("PET_BATTLE_CLOSE")
 
-rightFrame:RegisterEvent("PLAYER_LOGIN")
-rightFrame:RegisterEvent("CHAT_MSG_PET_BATTLE_COMBAT_LOG")
-rightFrame:RegisterEvent("PET_BATTLE_PET_ROUND_PLAYBACK_COMPLETE")
-rightFrame:RegisterEvent("PET_BATTLE_OPENING_START")
-rightFrame:RegisterEvent("PET_BATTLE_CLOSE")
-
 -- Single event handler for both frames
 local function OnEvent(self, event, ...)
-  if event == "PLAYER_LOGIN" then
-    print("|cff3FC7EB[PBS]|r: addon loaded. Open options panel with: |cffFFFF00/pbs|r")
-    addon.Timer:Initialize()
+  if event == "ADDON_LOADED" then
+    InitDB()
+
+    local height = addon.baseHeight + (PetBattleSpectatorDB.maxLines * addon.lineHeight / 4)
+    leftFrame:SetHeight(height)
+    rightFrame:SetHeight(height)
+
+    UpdateAppearance()
+  elseif event == "PLAYER_LOGIN" then
+    print(
+      "|cff3FC7EB[Pet Battle Spectator]|r: addon loaded. Open options with: |cffFFFF00/pbs|r or |cffFFFF00/pbspec|r or |cffFFFF00/petbattlespectator|r")
+    if addon.Timer then
+      addon.Timer:Initialize()
+    end
   elseif event == "PET_BATTLE_OPENING_START" then
-    local isPvP = not C_PetBattles.IsPlayerNPC(LE_BATTLE_PET_ENEMY)
+    local isPvP = not C_PetBattles.IsPlayerNPC(2)
     addon.Timer.isPvP = isPvP
 
     PetBattleSpectatorDB.leftLogs = {}
@@ -258,13 +273,13 @@ local function OnEvent(self, event, ...)
   elseif event == "PET_BATTLE_PET_ROUND_PLAYBACK_COMPLETE" then
     currentRound = currentRound + 1
     AddMessage("\n", true)
-    if addon.Timer.isPvP then
+    if addon.Timer and addon.Timer.isPvP then
       addon.Timer:ResetTurnTimer()
       addon.Timer:UpdateDisplay()
     end
   elseif event == "PET_BATTLE_CLOSE" then
     addon.Timer:Hide()
-    C_Timer.After(PetBattleSpectatorDB.logDuration or 5, function()
+    C_Timer.After(PetBattleSpectatorDB.logDuration or 2, function()
       leftFrame:Hide()
       rightFrame:Hide()
     end)
@@ -273,9 +288,3 @@ end
 
 -- Register single handler to left frame only
 leftFrame:SetScript("OnEvent", OnEvent)
-
--- Right frame doesn't need its own handler
-rightFrame:SetScript("OnEvent", function() end)
-
--- Initial setup
-UpdateAppearance()

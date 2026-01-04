@@ -1,5 +1,5 @@
 ## Interface: 110207,50503
-## Version: 1.3.0
+## Version: 2.0.0
 ## Title: PetBattleSpectator
 ## Author: FwenTheHunter
 ## Notes: Spectator view for live streams during PvP Pet battles (can also be used in PvE battles)
@@ -21,5 +21,6 @@
 ## Category-zhTW: 寵物對戰
 
 PetBattleSpectator.lua
+PetBattleSpectator_Utils.lua
 PetBattleSpectator_Timer.lua
 PetBattleSpectator_Options.lua

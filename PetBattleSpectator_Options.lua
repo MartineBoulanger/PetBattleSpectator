@@ -1,27 +1,32 @@
 local _, addon = ...
 
--- TODO : make generic templates for the button, slider, etc. (check PMLLogs for this)
+local U = addon.utils
+local options
+local fsSlider, mlSlider, durSlider, bgSlider, framesButton, resetBtn, showTimerBtn
 
--- Slash commands
-SLASH_PETBATTLESPECTATOR1 = "/pbs"
-SLASH_PETBATTLESPECTATOR2 = "/petbattlespectator"
+-- ======================================================
+-- CREATE OPTIONS FRAME AND OPTIONS
+-- ======================================================
+local function CreateOptions()
+    if options then return end
 
-local function ShowOptions()
-    local options = CreateFrame("Frame", "PetBattleSpectatorOptions", UIParent)
-    options:SetWidth(240)
+    -- create options frame
+    options = CreateFrame("Frame", "PetBattleSpectatorOptions", UIParent)
+    options:SetWidth(300)
     options:SetPoint("CENTER")
     options:SetFrameStrata("DIALOG")
+    options:Hide()
 
     -- Background
     local bg = options:CreateTexture(nil, "BACKGROUND")
     bg:SetAllPoints()
-    bg:SetColorTexture(0.1, 0.1, 0.1, 0.9)
+    bg:SetColorTexture(0, 0, 0, 0.9)
 
     -- Title
     local title = options:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     title:SetPoint("TOPLEFT", 10, -10)
-    title:SetText("PBS Options")
-    title:SetTextColor(1, 1, 1, 1)
+    title:SetText("Pet Battle Spectator Options")
+    title:SetTextColor(1, 0.81, 0)
 
     -- Close button
     local close = CreateFrame("Button", nil, options, "UIPanelCloseButton")
@@ -30,44 +35,28 @@ local function ShowOptions()
 
     -- Create a content frame to hold all options
     local content = CreateFrame("Frame", nil, options)
-    content:SetPoint("TOPLEFT", 10, -60)
+    content:SetPoint("TOPLEFT", 30, -80)
     content:SetPoint("RIGHT", -10, 0)
 
     -- Font Size Slider
-    local slider = CreateFrame("Slider", nil, options, "OptionsSliderTemplate")
-    slider:SetPoint("TOPLEFT", content, "TOPLEFT", 20, 0)
-    slider:SetWidth(180)
-    slider:SetMinMaxValues(8, 15)
-    slider:SetValue(PetBattleSpectatorDB.fontSize)
-    slider:SetValueStep(1)
-
-    local sliderText = slider:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    sliderText:SetPoint("BOTTOM", slider, "TOP", 0, 4)
-    sliderText:SetText(string.format("Font Size: %d", PetBattleSpectatorDB.fontSize))
-
-    slider:SetScript("OnValueChanged", function(self, value)
+    fsSlider = U.slider:Create(options, 8, 18, 1, "TOPLEFT", content, "TOPLEFT", 20, 0,
+        "Font Size: " .. PetBattleSpectatorDB.fontSize)
+    fsSlider:SetValue(math.min(18, math.max(8, PetBattleSpectatorDB.fontSize)))
+    fsSlider:SetScript("OnValueChanged", function(self, value)
         value = math.floor(value)
         PetBattleSpectatorDB.fontSize = value
-        sliderText:SetText(string.format("Font Size: %d", value))
+        self.label:SetText(string.format("Font Size: " .. value))
         addon.UpdateAppearance()
     end)
 
     -- Max Lines Slider
-    local maxLinesSlider = CreateFrame("Slider", nil, options, "OptionsSliderTemplate")
-    maxLinesSlider:SetPoint("TOPLEFT", slider, "BOTTOMLEFT", 0, -35)
-    maxLinesSlider:SetWidth(180)
-    maxLinesSlider:SetMinMaxValues(50, 200)
-    maxLinesSlider:SetValue(PetBattleSpectatorDB.maxLines)
-    maxLinesSlider:SetValueStep(10)
-
-    local maxLinesText = maxLinesSlider:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    maxLinesText:SetPoint("BOTTOM", maxLinesSlider, "TOP", 0, 4)
-    maxLinesText:SetText(string.format("Frame Height (in lines): %d", PetBattleSpectatorDB.maxLines))
-
-    maxLinesSlider:SetScript("OnValueChanged", function(self, value)
+    mlSlider = U.slider:Create(options, 50, 200, 10, "TOPLEFT", fsSlider, "BOTTOMLEFT", 0, -40,
+        "Frame Height (in lines): " .. PetBattleSpectatorDB.maxLines)
+    mlSlider:SetValue(math.min(200, math.max(50, PetBattleSpectatorDB.maxLines)))
+    mlSlider:SetScript("OnValueChanged", function(self, value)
         value = math.floor(value)
         PetBattleSpectatorDB.maxLines = value
-        maxLinesText:SetText(string.format("Frame Height (in lines): %d", value))
+        self.label:SetText(string.format("Frame Height (in lines): " .. value))
 
         -- Calculate and set new frame height and content size
         local newHeight = addon.baseHeight + (value * addon.lineHeight / 4)
@@ -80,48 +69,28 @@ local function ShowOptions()
     end)
 
     -- Log Duration Slider
-    local durationSlider = CreateFrame("Slider", nil, options, "OptionsSliderTemplate")
-    durationSlider:SetPoint("TOPLEFT", maxLinesSlider, "BOTTOMLEFT", 0, -35)
-    durationSlider:SetWidth(180)
-    durationSlider:SetMinMaxValues(2, 20)
-    durationSlider:SetValue(PetBattleSpectatorDB.logDuration)
-    durationSlider:SetValueStep(1)
-
-    local durationText = durationSlider:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    durationText:SetPoint("BOTTOM", durationSlider, "TOP", 0, 4)
-    durationText:SetText(string.format("Show Log Duration: %d sec",
-        PetBattleSpectatorDB.logDuration))
-
-    durationSlider:SetScript("OnValueChanged", function(self, value)
+    durSlider = U.slider:Create(options, 2, 20, 1, "TOPLEFT", mlSlider, "BOTTOMLEFT", 0, -40,
+        "Show Log Duration: " .. PetBattleSpectatorDB.logDuration .. "sec")
+    durSlider:SetValue(math.min(20, math.max(2, PetBattleSpectatorDB.logDuration)))
+    durSlider:SetScript("OnValueChanged", function(self, value)
         value = math.floor(value)
         PetBattleSpectatorDB.logDuration = value
-        durationText:SetText(string.format("Show Log Duration: %d sec", value))
+        self.label:SetText(string.format("Show Log Duration: " .. value .. "sec"))
     end)
 
     -- Background Opacity Slider
-    local opacitySlider = CreateFrame("Slider", nil, options, "OptionsSliderTemplate")
-    opacitySlider:SetPoint("TOPLEFT", durationSlider, "BOTTOMLEFT", 0, -35)
-    opacitySlider:SetWidth(180)
-    opacitySlider:SetMinMaxValues(0.1, 1.0)
-    opacitySlider:SetValue(PetBattleSpectatorDB.backgroundOpacity)
-    opacitySlider:SetValueStep(0.1)
-
-    local opacityText = opacitySlider:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    opacityText:SetPoint("BOTTOM", opacitySlider, "TOP", 0, 4)
-    opacityText:SetText(string.format("Background Opacity: %.1f", PetBattleSpectatorDB.backgroundOpacity))
-
-    opacitySlider:SetScript("OnValueChanged", function(self, value)
+    bgSlider = U.slider:Create(options, 0.1, 1.0, 0.1, "TOPLEFT", durSlider, "BOTTOMLEFT", 0, -40,
+        "Background Opacity: " .. PetBattleSpectatorDB.backgroundOpacity)
+    bgSlider:SetValue(math.min(1.0, math.max(0.1, PetBattleSpectatorDB.backgroundOpacity)))
+    bgSlider:SetScript("OnValueChanged", function(self, value)
         value = math.floor(value * 10) / 10 -- Round to 1 decimal place
         PetBattleSpectatorDB.backgroundOpacity = value
-        opacityText:SetText(string.format("Background Opacity: %.1f", value))
+        self.label:SetText(string.format("Background Opacity: " .. value))
         addon.UpdateAppearance()
     end)
 
     -- Reset Frames Position Button
-    local framesButton = CreateFrame("Button", nil, options, "UIPanelButtonTemplate")
-    framesButton:SetPoint("TOP", opacitySlider, "BOTTOM", 0, -20)
-    framesButton:SetSize(150, 25)
-    framesButton:SetText("Reset Logs Positions")
+    framesButton = U.button:Create(options, "Reset Logs Positions", "TOP", bgSlider, "BOTTOM", 0, -30)
     framesButton:SetScript("OnClick", function()
         -- Clear all points first
         addon.leftFrame:ClearAllPoints()
@@ -132,10 +101,7 @@ local function ShowOptions()
     end)
 
     -- Reset Timer Position Button
-    local resetBtn = CreateFrame("Button", nil, options, "UIPanelButtonTemplate")
-    resetBtn:SetPoint("TOP", framesButton, "BOTTOM", 0, -10)
-    resetBtn:SetSize(150, 25)
-    resetBtn:SetText("Reset Timer Position")
+    resetBtn = U.button:Create(options, "Reset Timer Position", "TOP", framesButton, "BOTTOM", 0, -10)
     resetBtn:SetScript("OnClick", function()
         if addon.Timer and addon.Timer.timerFrame then
             addon.Timer.timerFrame:ClearAllPoints()
@@ -145,10 +111,11 @@ local function ShowOptions()
     end)
 
     -- Show or hide the timer
-    local showTimerBtn = CreateFrame("CheckButton", nil, options, "UICheckButtonTemplate")
-    showTimerBtn:SetPoint("TOP", resetBtn, "BOTTOMLEFT", 10, -10)
+    showTimerBtn = CreateFrame("CheckButton", nil, options, "UICheckButtonTemplate")
+    showTimerBtn:SetPoint("TOP", resetBtn, "BOTTOMLEFT", 5, -20)
     showTimerBtn:SetSize(24, 24)
-    showTimerBtn.text:SetText(" Show the timer (only PvP)")
+    showTimerBtn.text:SetText(" Show the timer (only in PvP)")
+    showTimerBtn.text:SetTextColor(1, 1, 1)
     showTimerBtn:SetChecked(PetBattleSpectatorDB.showTimer)
     showTimerBtn:SetScript("OnClick", function(self)
         PetBattleSpectatorDB.showTimer = self:GetChecked()
@@ -158,9 +125,9 @@ local function ShowOptions()
     end)
 
     -- Calculate total height needed
-    local totalHeight = 100 + slider:GetHeight() + maxLinesSlider:GetHeight() +
-        durationSlider:GetHeight() + opacitySlider:GetHeight() + framesButton:GetHeight() + resetBtn:GetHeight() +
-        showTimerBtn:GetHeight() + 120
+    local totalHeight = 100 + fsSlider:GetHeight() + mlSlider:GetHeight() +
+        durSlider:GetHeight() + bgSlider:GetHeight() + framesButton:GetHeight() + resetBtn:GetHeight() +
+        showTimerBtn:GetHeight() + 200
 
     -- Set frame height
     options:SetHeight(totalHeight)
@@ -171,10 +138,45 @@ local function ShowOptions()
     options:RegisterForDrag("LeftButton")
     options:SetScript("OnDragStart", options.StartMoving)
     options:SetScript("OnDragStop", options.StopMovingOrSizing)
-
-    options:Show()
 end
 
+-- ======================================================
+-- REFRESH OPTIONS
+-- ======================================================
+local function RefreshOptions()
+    fsSlider:SetValue(PetBattleSpectatorDB.fontSize)
+    fsSlider.label:SetText("Font Size: " .. PetBattleSpectatorDB.fontSize)
+
+    mlSlider:SetValue(PetBattleSpectatorDB.maxLines)
+    mlSlider.label:SetText("Frame Height (in lines): " .. PetBattleSpectatorDB.maxLines)
+
+    durSlider:SetValue(PetBattleSpectatorDB.logDuration)
+    durSlider.label:SetText("Show Log Duration: " .. PetBattleSpectatorDB.logDuration .. "sec")
+
+    bgSlider:SetValue(PetBattleSpectatorDB.backgroundOpacity)
+    bgSlider.label:SetText("Background Opacity: " .. PetBattleSpectatorDB.backgroundOpacity)
+
+    showTimerBtn:SetChecked(PetBattleSpectatorDB.showTimer)
+end
+
+-- ======================================================
+-- SHOW OPTIONS
+-- ======================================================
+local function ShowOptions()
+    if not PetBattleSpectatorDB then return end
+
+    CreateOptions()
+    RefreshOptions()
+    options:Show()
+    options:Raise()
+end
+
+-- ======================================================
+-- SLASH COMMANDS
+-- ======================================================
+SLASH_PETBATTLESPECTATOR1 = "/pbs"
+SLASH_PETBATTLESPECTATOR2 = "/petbattlespectator"
+SLASH_PETBATTLESPECTATOR3 = "/pbspec"
 SlashCmdList.PETBATTLESPECTATOR = ShowOptions
 
 -- Expose functions if needed

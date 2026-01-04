@@ -1,10 +1,14 @@
-local addonName, addon = ...
+local _, addon = ...
+
 local Timer = {
   isPvP = false,
   currentTurnTime = 30,
   lastUpdate = 0
 }
 
+-- ======================================================
+-- INITIALIZE TIMER FRAME
+-- ======================================================
 function Timer:Initialize()
   -- Create a single timer frame
   self.timerFrame = CreateFrame("Frame", "PetBattleTimerSingle", UIParent)
@@ -44,6 +48,9 @@ function Timer:Initialize()
   end)
 end
 
+-- ======================================================
+-- UPDATING TIMER
+-- ======================================================
 function Timer:OnUpdate(elapsed)
   if not self.isPvP then return end
   if not PetBattleSpectatorDB.showTimer then return end
@@ -73,12 +80,14 @@ function Timer:UpdateDisplay()
 end
 
 function Timer:ResetTurnTimer()
+  if not self.timerFrame or not self.timerText then return end
   self.currentTurnTime = 30            -- Make sure this matches your variable name
-  self.timerText:SetText("30.0")
+  self.timerText:SetText(self.currentTurnTime)
   self.timerText:SetTextColor(1, 1, 1) -- Reset to white
 end
 
 function Timer:UpdateVisibility()
+  if not self.timerFrame then return end
   if self.timerFrame
       and self.isPvP
       and PetBattleSpectatorDB.showTimer then
@@ -98,6 +107,9 @@ function Timer:Hide()
   end
 end
 
+-- ======================================================
+-- SAVE & LOAD POSITIONS
+-- ======================================================
 function Timer:SavePosition()
   PetBattleSpectatorDB.timerPosition = PetBattleSpectatorDB.timerPosition or {}
   PetBattleSpectatorDB.timerPosition.point = { self.timerFrame:GetPoint() }
