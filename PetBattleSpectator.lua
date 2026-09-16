@@ -246,7 +246,7 @@ local function OnEvent(self, event, ...)
     UpdateAppearance()
   elseif event == "PLAYER_LOGIN" then
     print(
-      "|cff3FC7EB[PBSpectator]|r: v2.0.6 Loaded - open with |cffFFFF00/pbs|r, |cffFFFF00/pbspec|r or |cffFFFF00/petbattlespectator|r")
+      "|cff3FC7EB[PBSpectator]|r: v2.1.0 " .. addon:GetLocalizedString("LOADED"))
     if addon.Timer then
       addon.Timer:Initialize()
     end

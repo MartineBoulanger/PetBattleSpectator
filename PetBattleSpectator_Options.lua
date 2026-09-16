@@ -25,7 +25,7 @@ local function CreateOptions()
     -- Title
     local title = options:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     title:SetPoint("TOPLEFT", 10, -10)
-    title:SetText("Pet Battle Spectator Options")
+    title:SetText(addon:GetLocalizedString("OPTIONS_TITLE"))
     title:SetTextColor(1, 0.81, 0)
 
     -- Close button
@@ -40,23 +40,23 @@ local function CreateOptions()
 
     -- Font Size Slider
     fsSlider = U.slider:Create(options, 8, 18, 1, "TOPLEFT", content, "TOPLEFT", 20, 0,
-        "Font Size: " .. PetBattleSpectatorDB.fontSize)
+        addon:GetLocalizedString("FONT_SIZE") .. PetBattleSpectatorDB.fontSize)
     fsSlider:SetValue(math.min(18, math.max(8, PetBattleSpectatorDB.fontSize)))
     fsSlider:SetScript("OnValueChanged", function(self, value)
         value = math.floor(value)
         PetBattleSpectatorDB.fontSize = value
-        self.label:SetText(string.format("Font Size: " .. value))
+        self.label:SetText(string.format(addon:GetLocalizedString("FONT_SIZE") .. value))
         addon.UpdateAppearance()
     end)
 
     -- Max Lines Slider
     mlSlider = U.slider:Create(options, 50, 200, 10, "TOPLEFT", fsSlider, "BOTTOMLEFT", 0, -40,
-        "Frame Height (in lines): " .. PetBattleSpectatorDB.maxLines)
+        addon:GetLocalizedString("FRAME_HEIGHT") .. PetBattleSpectatorDB.maxLines)
     mlSlider:SetValue(math.min(200, math.max(50, PetBattleSpectatorDB.maxLines)))
     mlSlider:SetScript("OnValueChanged", function(self, value)
         value = math.floor(value)
         PetBattleSpectatorDB.maxLines = value
-        self.label:SetText(string.format("Frame Height (in lines): " .. value))
+        self.label:SetText(string.format(addon:GetLocalizedString("FRAME_HEIGHT") .. value))
 
         -- Calculate and set new frame height and content size
         local newHeight = addon.baseHeight + (value * addon.lineHeight / 4)
@@ -70,27 +70,28 @@ local function CreateOptions()
 
     -- Log Duration Slider
     durSlider = U.slider:Create(options, 2, 20, 1, "TOPLEFT", mlSlider, "BOTTOMLEFT", 0, -40,
-        "Show Log Duration: " .. PetBattleSpectatorDB.logDuration .. "sec")
+        addon:GetLocalizedString("SHOW_TIMER") .. PetBattleSpectatorDB.logDuration .. addon:GetLocalizedString("SEC"))
     durSlider:SetValue(math.min(20, math.max(2, PetBattleSpectatorDB.logDuration)))
     durSlider:SetScript("OnValueChanged", function(self, value)
         value = math.floor(value)
         PetBattleSpectatorDB.logDuration = value
-        self.label:SetText(string.format("Show Log Duration: " .. value .. "sec"))
+        self.label:SetText(string.format(addon:GetLocalizedString("SHOW_TIMER") ..
+            value .. addon:GetLocalizedString("SEC")))
     end)
 
     -- Background Opacity Slider
     bgSlider = U.slider:Create(options, 0.1, 1.0, 0.1, "TOPLEFT", durSlider, "BOTTOMLEFT", 0, -40,
-        "Background Opacity: " .. PetBattleSpectatorDB.backgroundOpacity)
+        addon:GetLocalizedString("BACKGROUND_OPACITY") .. PetBattleSpectatorDB.backgroundOpacity)
     bgSlider:SetValue(math.min(1.0, math.max(0.1, PetBattleSpectatorDB.backgroundOpacity)))
     bgSlider:SetScript("OnValueChanged", function(self, value)
         value = math.floor(value * 10) / 10 -- Round to 1 decimal place
         PetBattleSpectatorDB.backgroundOpacity = value
-        self.label:SetText(string.format("Background Opacity: " .. value))
+        self.label:SetText(string.format(addon:GetLocalizedString("BACKGROUND_OPACITY") .. value))
         addon.UpdateAppearance()
     end)
 
     -- Reset Frames Position Button
-    framesButton = U.button:Create(options, "Reset Logs Positions", "TOP", bgSlider, "BOTTOM", 0, -30)
+    framesButton = U.button:Create(options, addon:GetLocalizedString("RESET_LOGS"), "TOP", bgSlider, "BOTTOM", 0, -30)
     framesButton:SetScript("OnClick", function()
         -- Clear all points first
         addon.leftFrame:ClearAllPoints()
@@ -101,7 +102,7 @@ local function CreateOptions()
     end)
 
     -- Reset Timer Position Button
-    resetBtn = U.button:Create(options, "Reset Timer Position", "TOP", framesButton, "BOTTOM", 0, -10)
+    resetBtn = U.button:Create(options, addon:GetLocalizedString("RESET_TIMER"), "TOP", framesButton, "BOTTOM", 0, -10)
     resetBtn:SetScript("OnClick", function()
         if addon.Timer and addon.Timer.timerFrame then
             addon.Timer.timerFrame:ClearAllPoints()
@@ -114,7 +115,7 @@ local function CreateOptions()
     showTimerBtn = CreateFrame("CheckButton", nil, options, "UICheckButtonTemplate")
     showTimerBtn:SetPoint("TOP", resetBtn, "BOTTOMLEFT", 5, -20)
     showTimerBtn:SetSize(24, 24)
-    showTimerBtn.text:SetText(" Show the timer (only in PvP)")
+    showTimerBtn.text:SetText(addon:GetLocalizedString("ONLY_PVP"))
     showTimerBtn.text:SetTextColor(1, 1, 1)
     showTimerBtn:SetChecked(PetBattleSpectatorDB.showTimer)
     showTimerBtn:SetScript("OnClick", function(self)
@@ -145,16 +146,17 @@ end
 -- ======================================================
 local function RefreshOptions()
     fsSlider:SetValue(PetBattleSpectatorDB.fontSize)
-    fsSlider.label:SetText("Font Size: " .. PetBattleSpectatorDB.fontSize)
+    fsSlider.label:SetText(addon:GetLocalizedString("FONT_SIZE") .. PetBattleSpectatorDB.fontSize)
 
     mlSlider:SetValue(PetBattleSpectatorDB.maxLines)
-    mlSlider.label:SetText("Frame Height (in lines): " .. PetBattleSpectatorDB.maxLines)
+    mlSlider.label:SetText(addon:GetLocalizedString("FRAME_HEIGHT") .. PetBattleSpectatorDB.maxLines)
 
     durSlider:SetValue(PetBattleSpectatorDB.logDuration)
-    durSlider.label:SetText("Show Log Duration: " .. PetBattleSpectatorDB.logDuration .. "sec")
+    durSlider.label:SetText(addon:GetLocalizedString("SHOW_TIMER") ..
+        PetBattleSpectatorDB.logDuration .. addon:GetLocalizedString("SEC"))
 
     bgSlider:SetValue(PetBattleSpectatorDB.backgroundOpacity)
-    bgSlider.label:SetText("Background Opacity: " .. PetBattleSpectatorDB.backgroundOpacity)
+    bgSlider.label:SetText(addon:GetLocalizedString("BACKGROUND_OPACITY") .. PetBattleSpectatorDB.backgroundOpacity)
 
     showTimerBtn:SetChecked(PetBattleSpectatorDB.showTimer)
 end
